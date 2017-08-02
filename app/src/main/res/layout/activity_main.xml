@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TabHost xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@android:id/tabhost"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFFFF"
+        android:orientation="vertical" >
+
+        <FrameLayout
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+	    android:id="@+id/fragment_container"
+            android:layout_above="@+id/radioGroup">
+        <FrameLayout
+	    android:id="@android:id/tabcontent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+            <fragment
+                android:id="@+id/fragment_video"
+                android:name="com.cfk.xiaov.VideoFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:layout="@layout/fragment_video" />
+
+            <fragment
+                android:id="@+id/fragment_friend"
+                android:name="com.cfk.xiaov.FriendFragment"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                tools:layout="@layout/fragment_friend" />
+
+            <fragment
+                android:id="@+id/fragment_photo"
+                android:name="com.cfk.xiaov.PhotoFragment"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                tools:layout="@layout/fragment_photo" />
+            <fragment
+                android:id="@+id/fragment_me"
+                android:name="com.cfk.xiaov.MeFragment"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                tools:layout="@layout/fragment_me" />
+        </FrameLayout>
+
+
+    </FrameLayout>
+
+    <TabWidget
+	    android:id="@android:id/tabs"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.0"
+	    android:visibility="gone"/>
+
+	<!-- 我只是一条线 -->
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="2dp"
+            android:background="#000000"
+            android:layout_above="@+id/radioGroup">
+        </LinearLayout>
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:background="#cccccc"
+
+        android:id="@+id/radioGroup"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentBottom="true">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            style="@style/main_tab_bottom"
+            android:background="@drawable/footer_itembg_selector"
+            android:text="视频"
+            android:id="@+id/radioButton"
+            android:layout_margin="10dp" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            style="@style/main_tab_bottom"
+            android:background="@drawable/footer_itembg_selector"
+            android:text="亲友"
+            android:id="@+id/radioButton2"
+
+            android:layout_margin="10dp" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            style="@style/main_tab_bottom"
+            android:background="@drawable/footer_itembg_selector"
+            android:text="相册"
+            android:id="@+id/radioButton3"
+            android:layout_margin="10dp" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            style="@style/main_tab_bottom"
+            android:background="@drawable/footer_itembg_selector"
+            android:text="我"
+            android:id="@+id/radioButton4"
+            android:checked="false"
+            android:layout_margin="10dp" />
+
+    </RadioGroup>
+
+</RelativeLayout>
+</TabHost>
