@@ -24,8 +24,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -39,11 +37,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.cfk.xiaov.R;
 import com.google.zxing.client.android.Intents;
 import com.google.zxing.client.android.HttpHelper;
 import com.google.zxing.client.android.LocaleManager;
-
+import com.cfk.xiaov.R;
 
 /**
  * Uses Google Book Search to find a word or phrase in the requested book.
@@ -54,7 +51,7 @@ public final class SearchBookContentsActivity extends Activity {
 
   private static final String TAG = SearchBookContentsActivity.class.getSimpleName();
 
-  private static final Pattern TAG_PATTERN = Pattern.compile("\\<.*?\\>");
+  private static final Pattern TAG_PATTERN = Pattern.compile("<.*?>");
   private static final Pattern LT_ENTITY_PATTERN = Pattern.compile("&lt;");
   private static final Pattern GT_ENTITY_PATTERN = Pattern.compile("&gt;");
   private static final Pattern QUOTE_ENTITY_PATTERN = Pattern.compile("&#39;");
@@ -92,10 +89,6 @@ public final class SearchBookContentsActivity extends Activity {
   @Override
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
-
-    // Make sure that expired cookies are removed on launch.
-    CookieSyncManager.createInstance(this);
-    CookieManager.getInstance().removeExpiredCookie();
 
     Intent intent = getIntent();
     if (intent == null || !Intents.SearchBookContents.ACTION.equals(intent.getAction())) {

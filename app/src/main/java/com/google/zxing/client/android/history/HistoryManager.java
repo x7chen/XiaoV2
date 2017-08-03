@@ -16,7 +16,8 @@
 
 package com.google.zxing.client.android.history;
 
-import android.database.sqlite.SQLiteException;
+import android.database.CursorIndexOutOfBoundsException;
+import android.database.SQLException;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
 import com.google.zxing.client.android.Intents;
@@ -41,8 +42,8 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * <p>Manages functionality related to scan history.</p>
@@ -67,6 +68,7 @@ public final class HistoryManager {
 
   private static final String[] ID_COL_PROJECTION = { DBHelper.ID_COL };
   private static final String[] ID_DETAIL_COL_PROJECTION = { DBHelper.ID_COL, DBHelper.DETAILS_COL };
+  private static final Pattern DOUBLE_QUOTE = Pattern.compile("\"", Pattern.LITERAL);
 
   private final Activity activity;
   private final boolean enableHistory;
@@ -86,6 +88,9 @@ public final class HistoryManager {
       cursor = db.query(DBHelper.TABLE_NAME, COUNT_COLUMN, null, null, null, null, null);
       cursor.moveToFirst();
       return cursor.getInt(0) > 0;
+    } catch (SQLException sqle) {
+      Log.w(TAG, sqle);
+      return false;
     } finally {
       close(cursor, db);
     }
@@ -108,6 +113,9 @@ public final class HistoryManager {
         Result result = new Result(text, null, null, BarcodeFormat.valueOf(format), timestamp);
         items.add(new HistoryItem(result, display, details));
       }
+    } catch (CursorIndexOutOfBoundsException cioobe) {
+      Log.w(TAG, cioobe);
+      // continue
     } finally {
       close(cursor, db);
     }
@@ -146,6 +154,8 @@ public final class HistoryManager {
                         DBHelper.TIMESTAMP_COL + " DESC");
       cursor.move(number + 1);
       db.delete(DBHelper.TABLE_NAME, DBHelper.ID_COL + '=' + cursor.getString(0), null);
+    } catch (SQLException sqle) {
+      Log.w(TAG, sqle);
     } finally {
       close(cursor, db);
     }
@@ -231,6 +241,8 @@ public final class HistoryManager {
     try {
       db = helper.getWritableDatabase();      
       db.delete(DBHelper.TABLE_NAME, DBHelper.TEXT_COL + "=?", new String[] { text });
+    } catch (SQLException sqle) {
+      Log.w(TAG, sqle);
     } finally {
       close(null, db);
     }
@@ -252,7 +264,7 @@ public final class HistoryManager {
         Log.i(TAG, "Deleting scan history ID " + id);
         db.delete(DBHelper.TABLE_NAME, DBHelper.ID_COL + '=' + id, null);
       }
-    } catch (SQLiteException sqle) {
+    } catch (SQLException sqle) {
       // We're seeing an error here when called in CaptureActivity.onCreate() in rare cases
       // and don't understand it. First theory is that it's transient so can be safely ignored.
       Log.w(TAG, sqle);
@@ -299,8 +311,7 @@ public final class HistoryManager {
 
         // Add timestamp again, formatted
         long timestamp = cursor.getLong(3);
-        historyText.append('"').append(massageHistoryField(
-            format.format(new Date(timestamp)))).append("\",");
+        historyText.append('"').append(massageHistoryField(format.format(timestamp))).append("\",");
 
         // Above we're preserving the old ordering of columns which had formatted data in position 5
 
@@ -318,6 +329,8 @@ public final class HistoryManager {
     try {
       db = helper.getWritableDatabase();      
       db.delete(DBHelper.TABLE_NAME, null, null);
+    } catch (SQLException sqle) {
+      Log.w(TAG, sqle);
     } finally {
       close(null, db);
     }
@@ -351,7 +364,7 @@ public final class HistoryManager {
   }
 
   private static String massageHistoryField(String value) {
-    return value == null ? "" : value.replace("\"","\"\"");
+    return value == null ? "" : DOUBLE_QUOTE.matcher(value).replaceAll("\"\"");
   }
   
   private static void close(Cursor cursor, SQLiteDatabase database) {
