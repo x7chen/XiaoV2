@@ -127,4 +127,59 @@
     <string name="result_wifi">Found WLAN Configuration</string>
     <string name="sbc_name">Google Book Search</string>
     <string name="wifi_changing_network">Requesting connection to network\u2026</string>
+    <string name="title_activity_login">Sign in</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password (optional)</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    
+    <string name="tip_welcome">welcome,message.</string>
+
+    <string name="title_login">login use cellnumber</string>
+
+    <string name="tip_account">account</string>
+    <string name="tip_password">password</string>
+
+    <string name="tip_hit_account">not only num</string>
+    <string name="tip_hit_password">passwork length at least 8</string>
+
+    <string name="tip_logout">logout</string>
+
+    <string name="tip_my_address">my address</string>
+    <string name="tip_dst_address">dst address</string>
+    <string name="tip_make_call">call</string>
+
+    <string name="tip_call_list">call list</string>
+
+    <string name="tip_accept_call">accept call</string>
+    <string name="tip_reject_call">reject call</string>
+    <string name="tip_end_call">end call</string>
+
+    <string name="tip_close_camera">close camera</string>
+    <string name="tip_open_camera">open camera</string>
+    <string name="tip_switch_camera">switch camera</string>
+    <string name="tip_close_mic">close mic</string>
+    <string name="tip_open_mic">open mic</string>
+    <string name="tip_set_speaker">set speaker</string>
+    <string name="tip_set_headset">set headset</string>
+    <string name="tip_set_beauty">set beauty</string>
+
+    <string name="toast_phone_empty">phone is empty</string>
+    <string name="makecall">call</string>
+    <string name="phonenum_tips">input phone num</string>
+    <string name="phone_number">phone number</string>
+    <string name="myphone">my phone num</string>
+    <string name="invite">invite</string>
+    <string name="log">log</string>
+    <string name="invite_tip">invite id</string>
+    <string name="cancel">cancel</string>
 </resources>
