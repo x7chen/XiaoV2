@@ -141,7 +141,7 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
-    
+
     <string name="tip_welcome">welcome,message.</string>
 
     <string name="title_login">login use cellnumber</string>
@@ -182,4 +182,6 @@
     <string name="log">log</string>
     <string name="invite_tip">invite id</string>
     <string name="cancel">cancel</string>
+
+    <string name="toolbar_login">Login</string>
 </resources>

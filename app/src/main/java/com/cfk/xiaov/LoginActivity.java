@@ -16,8 +16,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
@@ -25,7 +28,9 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,14 +58,29 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-
+    LinearLayout registView;
+    LinearLayout loginView;
+    Button bt_forget_pw;
+    boolean view_switch;
+    Toolbar mToolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        mToolbar = (Toolbar) findViewById(R.id.toolbar_main_page);
+        mToolbar.setTitle(R.string.toolbar_login);
+        mToolbar.setTitleTextColor(getResources().getColor(R.color.colorWhite));
+        setSupportActionBar(mToolbar);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
+
+        registView = (LinearLayout)findViewById(R.id.regist_form);
+        loginView = (LinearLayout)findViewById(R.id.login_form);
+        registView.setVisibility(View.INVISIBLE);
+        loginView.setVisibility(View.VISIBLE);
+
 
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -85,6 +105,49 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        bt_forget_pw = (Button)findViewById(R.id.forget_password);
+        bt_forget_pw.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(LoginActivity.this,"Forget Password",Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.back_login,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.menu_switch:
+                if(view_switch){
+                    item.setTitle(R.string.new_register);
+                    registView.setVisibility(View.INVISIBLE);
+                    loginView.setVisibility(View.VISIBLE);
+                    mToolbar.setTitle(R.string.toolbar_login);
+                }
+                else {
+                    item.setTitle(R.string.menu_back_login);
+                    registView.setVisibility(View.VISIBLE);
+                    loginView.setVisibility(View.INVISIBLE);
+                    mToolbar.setTitle(R.string.toolbar_regist);
+                }
+                view_switch=!view_switch;
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void populateAutoComplete() {
