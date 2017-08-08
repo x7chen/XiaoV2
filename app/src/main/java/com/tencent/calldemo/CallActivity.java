@@ -178,7 +178,7 @@ public class CallActivity extends Activity implements ILVCallListener, ILVBCallM
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_simple_main);
+        setContentView(R.layout.activity_call);
         initView();
 
         // 添加通话回调

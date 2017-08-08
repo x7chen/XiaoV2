@@ -4,43 +4,35 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
-
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.view.KeyEvent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.tencent.common.AccountMgr;
+import com.tencent.ilivesdk.ILiveCallBack;
+import com.tencent.ilivesdk.ILiveSDK;
+import com.tencent.ilivesdk.core.ILiveLoginManager;
+import com.tencent.model.MySelfInfo;
 
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
+public class LoginActivity extends AppCompatActivity implements OnClickListener {
 
+    String TAG = getClass().getSimpleName();
     /**
      * A dummy authentication store containing known user names and passwords.
      * TODO: remove after connecting to a real authentication system.
@@ -54,70 +46,97 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private UserLoginTask mAuthTask = null;
 
     // UI references.
-    private AutoCompleteTextView mEmailView;
-    private EditText mPasswordView;
+    private EditText loginAccountView, registerAccountView;
+    private EditText loginPasswordView, registerPasswordView;
+    private Button buttonSignIn, buttonSignUp;
     private View mProgressView;
     private View mLoginFormView;
-    LinearLayout registView;
+    LinearLayout registerView;
     LinearLayout loginView;
-    Button bt_forget_pw;
-    boolean view_switch;
+    Button buttonForgetPassword;
+    boolean viewSwitch;
     Toolbar mToolbar;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+    private boolean bTLSAccount = true; // 默认为托管模式，与iOS一致
+    private AccountMgr mAccountMgr = new AccountMgr();
+    private boolean bLogin = false; // 记录登录状态
+    private String userId;
 
+    private void initView() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar_main_page);
         mToolbar.setTitle(R.string.toolbar_login);
         mToolbar.setTitleTextColor(getResources().getColor(R.color.colorWhite));
         setSupportActionBar(mToolbar);
         // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        populateAutoComplete();
+        loginAccountView = (EditText) findViewById(R.id.login_account);
+        loginPasswordView = (EditText) findViewById(R.id.login_password);
+        registerAccountView = (EditText) findViewById(R.id.register_account);
+        registerPasswordView = (EditText) findViewById(R.id.register_password);
 
-        registView = (LinearLayout)findViewById(R.id.regist_form);
-        loginView = (LinearLayout)findViewById(R.id.login_form);
-        registView.setVisibility(View.INVISIBLE);
+        registerView = (LinearLayout) findViewById(R.id.register_form);
+        loginView = (LinearLayout) findViewById(R.id.login_form);
+
+        registerView.setVisibility(View.INVISIBLE);
         loginView.setVisibility(View.VISIBLE);
 
 
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
-                }
-                return false;
-            }
-        });
+//        loginPasswordView = (EditText) findViewById(R.id.login_password);
+//        loginPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+//            @Override
+//            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
+//                if (id == R.id.login || id == EditorInfo.IME_NULL) {
+//                    attemptLogin();
+//                    return true;
+//                }
+//                return false;
+//            }
+//        });
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-                startActivity(new Intent(LoginActivity.this,MainActivity.class));
-            }
-        });
+//        Button mSignInButton = (Button) findViewById(R.id.sign_in_button);
+//        mSignInButton.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                attemptLogin();
+//                startActivity(new Intent(LoginActivity.this,MainActivity.class));
+//            }
+//        });
 
-        mLoginFormView = findViewById(R.id.login_form);
+        mLoginFormView = findViewById(R.id.all_login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        bt_forget_pw = (Button)findViewById(R.id.forget_password);
-        bt_forget_pw.setOnClickListener(new OnClickListener() {
+        buttonForgetPassword = (Button) findViewById(R.id.forget_password);
+        buttonForgetPassword.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(LoginActivity.this,"Forget Password",Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Forget Password", Toast.LENGTH_SHORT).show();
             }
         });
+        buttonSignIn = (Button) findViewById(R.id.sign_in_button);
+        buttonSignUp = (Button) findViewById(R.id.sign_up_button);
+        buttonSignIn.setOnClickListener(this);
+        buttonSignUp.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+        //TODO 初始化随心播
+        if (bTLSAccount) {
+            ILiveSDK.getInstance().initSdk(getApplicationContext(), 1400028285, 11818);
+        } else {
+            ILiveSDK.getInstance().initSdk(getApplicationContext(), 1400016949, 8002);
+        }
+        initView();
+        MySelfInfo.getInstance().getCache(getApplicationContext());
+        userId = MySelfInfo.getInstance().getId();
+        if(userId!=null){
+            loginSDK(userId,MySelfInfo.getInstance().getUserSig());
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.back_login,menu);
+        getMenuInflater().inflate(R.menu.back_login, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -128,30 +147,25 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.menu_switch:
-                if(view_switch){
+                if (viewSwitch) {
                     item.setTitle(R.string.new_register);
-                    registView.setVisibility(View.INVISIBLE);
+                    registerView.setVisibility(View.INVISIBLE);
                     loginView.setVisibility(View.VISIBLE);
                     mToolbar.setTitle(R.string.toolbar_login);
-                }
-                else {
+                } else {
                     item.setTitle(R.string.menu_back_login);
-                    registView.setVisibility(View.VISIBLE);
+                    registerView.setVisibility(View.VISIBLE);
                     loginView.setVisibility(View.INVISIBLE);
                     mToolbar.setTitle(R.string.toolbar_regist);
                 }
-                view_switch=!view_switch;
+                viewSwitch = !viewSwitch;
                 break;
             default:
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void populateAutoComplete() {
-        getLoaderManager().initLoader(0, null, this);
     }
 
 
@@ -166,31 +180,31 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
 
         // Reset errors.
-        mEmailView.setError(null);
-        mPasswordView.setError(null);
+        loginAccountView.setError(null);
+        loginPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
+        String email = loginAccountView.getText().toString();
+        String password = loginPasswordView.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
         if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
+            loginPasswordView.setError(getString(R.string.error_invalid_password));
+            focusView = loginPasswordView;
             cancel = true;
         }
 
         // Check for a valid email address.
         if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
+            loginAccountView.setError(getString(R.string.error_field_required));
+            focusView = loginAccountView;
             cancel = true;
         } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
-            focusView = mEmailView;
+            loginAccountView.setError(getString(R.string.error_invalid_email));
+            focusView = loginAccountView;
             cancel = true;
         }
 
@@ -215,6 +229,156 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
         return password.length() > 4;
+    }
+
+    private void tryRegister() {
+
+        registerAccountView.setError(null);
+        registerPasswordView.setError(null);
+
+        final String userName = registerAccountView.getText().toString();
+        final String password = registerPasswordView.getText().toString();
+
+        boolean cancel = false;
+        View focusAfter = null;
+
+        if (TextUtils.isEmpty(userName) || !isValidUserName(userName)) {
+            registerAccountView.setError(getString(R.string.tip_hit_account));
+            focusAfter = registerAccountView;
+            cancel = true;
+        } else if (TextUtils.isEmpty(password) || !isValidPassword(password)) {
+            registerPasswordView.setError(getString(R.string.tip_hit_password));
+            focusAfter = registerPasswordView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            focusAfter.requestFocus();
+        } else {
+            regist(registerAccountView.getText().toString(), registerPasswordView.getText().toString());
+        }
+    }
+
+    private boolean isValidPassword(String password) {
+        return password.length() >= 8 && password.length() <= 16 && password.matches("^[A-Za-z0-9]*$");
+    }
+
+    private boolean isValidUserName(String userName) {
+        return userName.length() >= 4 &&
+                userName.length() <= 24 &&
+                userName.matches("^[A-Za-z0-9]*[A-Za-z][A-Za-z0-9]*$");
+    }
+
+
+    private void tryLogin() {
+
+        loginAccountView.setError(null);
+        loginPasswordView.setError(null);
+
+        final String userName = loginAccountView.getText().toString();
+        final String password = loginPasswordView.getText().toString();
+
+        boolean cancel = false;
+        View focusAfter = null;
+
+        if (TextUtils.isEmpty(userName)) {
+            loginAccountView.setError("用户名不可为空");
+            focusAfter = loginAccountView;
+            cancel = true;
+        } else if (TextUtils.isEmpty(password)) {
+            loginPasswordView.setError("密码不可为空");
+            focusAfter = loginPasswordView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            focusAfter.requestFocus();
+        } else {
+            login(loginAccountView.getText().toString(), loginPasswordView.getText().toString());
+        }
+    }
+
+    /**
+     * 使用userSig登录iLiveSDK(独立模式下获有userSig直接调用登录)
+     */
+    private void loginSDK(final String id, final String userSig) {
+        ILiveLoginManager.getInstance().iLiveLogin(id, userSig, new ILiveCallBack() {
+            @Override
+            public void onSuccess(Object data) {
+                bLogin = true;
+                Log.i(TAG, "Login CallSDK success:" + id);
+                MySelfInfo.getInstance().setId(ILiveLoginManager.getInstance().getMyUserId());
+                MySelfInfo.getInstance().setUserSig(userSig);
+                MySelfInfo.getInstance().writeToCache(getApplicationContext());
+                startService(new Intent(LoginActivity.this,VideoService.class));
+                startActivity(new Intent(LoginActivity.this,MainActivity.class));
+                finish();
+            }
+
+            @Override
+            public void onError(String module, int errCode, String errMsg) {
+                Toast.makeText(LoginActivity.this, "Login failed:" + module + "|" + errCode + "|" + errMsg, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * 登录并获取userSig(*托管模式，独立模式下直接用userSig调用loginSDK登录)
+     */
+    private void login(final String id, String password) {
+
+        if (bTLSAccount) {
+            ILiveLoginManager.getInstance().tlsLogin(id, password, new ILiveCallBack<String>() {
+                @Override
+                public void onSuccess(String data) {
+                    loginSDK(id, data);
+                }
+
+                @Override
+                public void onError(String module, int errCode, String errMsg) {
+                    Toast.makeText(getApplicationContext(), "login failed:" + module + "|" + errCode + "|" + errMsg, Toast.LENGTH_SHORT).show();
+
+                }
+            });
+        } else {
+            mAccountMgr.login(id, password, new AccountMgr.RequestCallBack() {
+                @Override
+                public void onResult(int error, String response) {
+                    if (0 == error) {
+                        loginSDK(id, response);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "login failed:" + response, Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * 注册用户名(*托管模式，独立模式下请向自己私有服务器注册)
+     */
+    private void regist(String account, String password) {
+        if (bTLSAccount) {
+            ILiveLoginManager.getInstance().tlsRegister(account, password, new ILiveCallBack() {
+                @Override
+                public void onSuccess(Object data) {
+                    Toast.makeText(getApplicationContext(), "regist success!", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onError(String module, int errCode, String errMsg) {
+                    Toast.makeText(getApplicationContext(), "regist failed:" + module + "|" + errCode + "|" + errMsg, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            mAccountMgr.regist(account, password, new AccountMgr.RequestCallBack() {
+                @Override
+                public void onResult(int error, String response) {
+                    Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     /**
@@ -254,57 +418,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(this,
-                // Retrieve data rows for the device user's 'profile' contact.
-                Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
-                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY), ProfileQuery.PROJECTION,
-
-                // Select only email addresses.
-                ContactsContract.Contacts.Data.MIMETYPE +
-                        " = ?", new String[]{ContactsContract.CommonDataKinds.Email
-                .CONTENT_ITEM_TYPE},
-
-                // Show primary email addresses first. Note that there won't be
-                // a primary email address if the user hasn't specified one.
-                ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        List<String> emails = new ArrayList<>();
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            emails.add(cursor.getString(ProfileQuery.ADDRESS));
-            cursor.moveToNext();
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.sign_in_button:
+                tryLogin();
+                break;
+            case R.id.sign_up_button:
+                tryRegister();
+                break;
+            default:
+                break;
         }
-
-        addEmailsToAutoComplete(emails);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-
-    }
-
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(LoginActivity.this,
-                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-
-        mEmailView.setAdapter(adapter);
-    }
-
-
-    private interface ProfileQuery {
-        String[] PROJECTION = {
-                ContactsContract.CommonDataKinds.Email.ADDRESS,
-                ContactsContract.CommonDataKinds.Email.IS_PRIMARY,
-        };
-
-        int ADDRESS = 0;
-        int IS_PRIMARY = 1;
     }
 
     /**
@@ -352,8 +476,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (success) {
                 finish();
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                loginPasswordView.setError(getString(R.string.error_incorrect_password));
+                loginPasswordView.requestFocus();
             }
         }
 

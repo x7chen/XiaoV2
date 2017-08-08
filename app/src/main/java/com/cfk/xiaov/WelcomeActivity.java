@@ -4,13 +4,13 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-public class FirstActivity extends AppCompatActivity {
+public class WelcomeActivity extends AppCompatActivity {
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_first);
+        setContentView(R.layout.activity_welcome);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -19,7 +19,7 @@ public class FirstActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                startActivity(new Intent(FirstActivity.this,LoginActivity.class));
+                startActivity(new Intent(WelcomeActivity.this,LoginActivity.class));
                 finish();
             }
         }).start();
